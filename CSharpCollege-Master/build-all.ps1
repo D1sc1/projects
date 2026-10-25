@@ -38,6 +38,25 @@ function Find-MsBuild {
 }
 
 # .cmd-файлы пишутся без BOM и с переводами строк CRLF, иначе cmd.exe их не поймёт
+# Пакеты NuGet распаковываются в <решение>\packages, и при папке вида C:\Users\...\Documents\projects
+# часть путей длиннее 260 символов - Windows их не создаёт, и сборка падает. Поэтому на время сборки
+# эта папка подключается временным диском (subst), и пути становятся короче.
+# Этот диск видит только MSBuild: сам PowerShell может не знать о диске, подключённом после его запуска,
+# поэтому копирование и правка файлов идут по настоящему пути.
+function Mount-ShortPath([string]$path) {
+    foreach ($letter in [char[]]'RSTUVWXYZQPONMLKJIHG') {
+        $drive = "${letter}:"
+        if (-not [IO.Directory]::Exists("$drive\")) {
+            subst.exe $drive $path | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                return $drive
+            }
+        }
+    }
+
+    return $null
+}
+
 function Write-CmdFile([string]$path, [string]$text) {
     [IO.File]::WriteAllText($path, ($text -replace "`r?`n", "`r`n") + "`r`n", (New-Object Text.UTF8Encoding $false))
 }
@@ -70,6 +89,20 @@ if (-not $msbuild -or -not (Test-Path $msbuild)) {
 New-Item $logs -ItemType Directory -Force | Out-Null
 Write-Host "MSBuild: $msbuild"
 
+$buildRoot = $root
+$substDrive = $null
+if ($env:OS -eq 'Windows_NT' -and $root.Length -gt 20) {
+    $substDrive = Mount-ShortPath $root
+    if ($substDrive) {
+        $buildRoot = "$substDrive\"
+        Write-Host "Сборка идёт через временный диск $substDrive (короткие пути для пакетов NuGet)"
+    }
+    else {
+        Write-Host 'Не удалось подключить временный диск: проекты с пакетами NuGet могут не собраться из-за длинных путей.' -ForegroundColor Yellow
+        Write-Host 'Тогда перенесите папку проекта ближе к корню диска, например в C:\cs' -ForegroundColor Yellow
+    }
+}
+
 # Name - папка в _exe; Solution - .sln от корня; App - папка проекта с .exe (рядом с .sln); Exe - имя программы
 $apps = @(
     @{ Name = '01 AlarmClock';        Solution = 'Projects.24.3.24.4/1. AlarmClock/AlarmClock/AlarmClock.sln';                        App = 'AlarmClock';        Exe = 'AlarmClock.exe' },
@@ -86,53 +119,55 @@ $apps = @(
 
 $results = New-Object System.Collections.ArrayList
 
-foreach ($app in $apps) {
+try {
+
+    foreach ($app in $apps) {
+        Write-Host ''
+        Write-Host "=== $($app.Name) ===" -ForegroundColor Cyan
+        $solution = Join-Path $root $app.Solution
+
+        try {
+            if (-not (Build-Solution ([IO.Path]::Combine($buildRoot, $app.Solution)) $app.Name)) {
+                [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'ОШИБКА СБОРКИ'; Запуск = "см. _exe\logs\$($app.Name).log" })
+                continue
+            }
+
+            $binDir = Join-Path (Join-Path (Split-Path $solution) $app.App) "bin/$Configuration"
+            $target = Copy-App $binDir $app.Name
+
+            if ($app.Name -eq '10 LightsOut Client') {
+                # клиент ходит на сервер, запущенный через start-server.cmd (http, порт $serverPort)
+                $config = Join-Path $target "$($app.Exe).config"
+                $text = [IO.File]::ReadAllText($config)
+                $text = $text -replace 'key="ServerConnection" value="[^"]*"', "key=`"ServerConnection`" value=`"http://localhost:$serverPort/`""
+                [IO.File]::WriteAllText($config, $text, (New-Object Text.UTF8Encoding $false))
+            }
+
+            [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'OK'; Запуск = "_exe\$($app.Name)\$($app.Exe)" })
+        }
+        catch {
+            # например, программа из прошлой сборки ещё открыта и её папку нельзя перезаписать
+            [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'ОШИБКА'; Запуск = $_.Exception.Message })
+        }
+    }
+
+    # --- Проект 8: веб-версия игры (ASP.NET Core) ---
     Write-Host ''
-    Write-Host "=== $($app.Name) ===" -ForegroundColor Cyan
-    $solution = Join-Path $root $app.Solution
-
-    try {
-        if (-not (Build-Solution $solution $app.Name)) {
-            [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'ОШИБКА СБОРКИ'; Запуск = "см. _exe\logs\$($app.Name).log" })
-            continue
+    Write-Host '=== 08 LightsOut Web ===' -ForegroundColor Cyan
+    $webName = '08 LightsOut Web'
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'ПРОПУЩЕН'; Запуск = 'нужен .NET SDK 10 (dotnet)' })
+    }
+    else {
+        $webProject = Join-Path $root 'Projects.24.3.24.4/8. Game Web/LightsOutGame/LightsOutGame.Web/LightsOutGame.Web.csproj'
+        $webTarget = Join-Path $out $webName
+        if (Test-Path $webTarget) {
+            Remove-Item $webTarget -Recurse -Force
         }
 
-        $binDir = Join-Path (Join-Path (Split-Path $solution) $app.App) "bin/$Configuration"
-        $target = Copy-App $binDir $app.Name
-
-        if ($app.Name -eq '10 LightsOut Client') {
-            # клиент ходит на сервер, запущенный через start-server.cmd (http, порт $serverPort)
-            $config = Join-Path $target "$($app.Exe).config"
-            $text = [IO.File]::ReadAllText($config)
-            $text = $text -replace 'key="ServerConnection" value="[^"]*"', "key=`"ServerConnection`" value=`"http://localhost:$serverPort/`""
-            [IO.File]::WriteAllText($config, $text, (New-Object Text.UTF8Encoding $false))
-        }
-
-        [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'OK'; Запуск = "_exe\$($app.Name)\$($app.Exe)" })
-    }
-    catch {
-        # например, программа из прошлой сборки ещё открыта и её папку нельзя перезаписать
-        [void]$results.Add([pscustomobject]@{ Проект = $app.Name; Результат = 'ОШИБКА'; Запуск = $_.Exception.Message })
-    }
-}
-
-# --- Проект 8: веб-версия игры (ASP.NET Core) ---
-Write-Host ''
-Write-Host '=== 08 LightsOut Web ===' -ForegroundColor Cyan
-$webName = '08 LightsOut Web'
-if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-    [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'ПРОПУЩЕН'; Запуск = 'нужен .NET SDK 10 (dotnet)' })
-}
-else {
-    $webProject = Join-Path $root 'Projects.24.3.24.4/8. Game Web/LightsOutGame/LightsOutGame.Web/LightsOutGame.Web.csproj'
-    $webTarget = Join-Path $out $webName
-    if (Test-Path $webTarget) {
-        Remove-Item $webTarget -Recurse -Force
-    }
-
-    & dotnet publish $webProject -c $Configuration -o $webTarget -nologo | Out-Host
-    if ($LASTEXITCODE -eq 0) {
-        Write-CmdFile (Join-Path $webTarget 'start-web.cmd') @"
+        & dotnet publish $webProject -c $Configuration -o $webTarget -nologo | Out-Host
+        if ($LASTEXITCODE -eq 0) {
+            Write-CmdFile (Join-Path $webTarget 'start-web.cmd') @"
 @echo off
 rem Starts the Lights Out web app and opens it in the browser
 cd /d "%~dp0"
@@ -140,23 +175,24 @@ start "LightsOut Web" LightsOutGame.Web.exe --urls http://localhost:$webPort
 timeout /t 3 /nobreak >nul
 start "" http://localhost:$webPort/Game
 "@
-        [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'OK'; Запуск = "_exe\$webName\start-web.cmd" })
+            [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'OK'; Запуск = "_exe\$webName\start-web.cmd" })
+        }
+        else {
+            [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'ОШИБКА СБОРКИ'; Запуск = 'см. вывод dotnet publish выше' })
+        }
     }
-    else {
-        [void]$results.Add([pscustomobject]@{ Проект = $webName; Результат = 'ОШИБКА СБОРКИ'; Запуск = 'см. вывод dotnet publish выше' })
-    }
-}
 
-# --- Проект 10: сервер (ASP.NET Web API, запускается в IIS Express) ---
-Write-Host ''
-Write-Host '=== 10 LightsOut Server ===' -ForegroundColor Cyan
-$serverName = '10 LightsOut Server'
-$serverSolution = Join-Path $root 'Projects.24.3.24.4/10. Game Client-Server/LightsOutGame/LightsOutGame.Server.sln'
-if (Build-Solution $serverSolution $serverName) {
-    $webApiDir = (Resolve-Path (Join-Path (Split-Path $serverSolution) 'LightsOutGame.WebApi')).Path
-    $serverTarget = Join-Path $out $serverName
-    New-Item $serverTarget -ItemType Directory -Force | Out-Null
-    Write-CmdFile (Join-Path $serverTarget 'start-server.cmd') @"
+    # --- Проект 10: сервер (ASP.NET Web API, запускается в IIS Express) ---
+    Write-Host ''
+    Write-Host '=== 10 LightsOut Server ===' -ForegroundColor Cyan
+    $serverName = '10 LightsOut Server'
+    $serverDir = 'Projects.24.3.24.4/10. Game Client-Server/LightsOutGame'
+    if (Build-Solution ([IO.Path]::Combine($buildRoot, "$serverDir/LightsOutGame.Server.sln")) $serverName) {
+        # путь для IIS Express - настоящий: временный диск после сборки отключается
+        $webApiDir = (Resolve-Path (Join-Path $root "$serverDir/LightsOutGame.WebApi")).Path
+        $serverTarget = Join-Path $out $serverName
+        New-Item $serverTarget -ItemType Directory -Force | Out-Null
+        Write-CmdFile (Join-Path $serverTarget 'start-server.cmd') @"
 @echo off
 rem Starts LightsOutGame.WebApi in IIS Express: http://localhost:$serverPort/  (Swagger: /swagger)
 set IISEXPRESS=%ProgramFiles%\IIS Express\iisexpress.exe
@@ -169,10 +205,16 @@ if not exist "%IISEXPRESS%" (
 "%IISEXPRESS%" /path:"$webApiDir" /port:$serverPort
 pause
 "@
-    [void]$results.Add([pscustomobject]@{ Проект = $serverName; Результат = 'OK'; Запуск = "_exe\$serverName\start-server.cmd" })
+        [void]$results.Add([pscustomobject]@{ Проект = $serverName; Результат = 'OK'; Запуск = "_exe\$serverName\start-server.cmd" })
+    }
+    else {
+        [void]$results.Add([pscustomobject]@{ Проект = $serverName; Результат = 'ОШИБКА СБОРКИ'; Запуск = "см. _exe\logs\$serverName.log (для сервера нужны «Средства сборки веб-приложений»)" })
+    }
 }
-else {
-    [void]$results.Add([pscustomobject]@{ Проект = $serverName; Результат = 'ОШИБКА СБОРКИ'; Запуск = "см. _exe\logs\$serverName.log (нужны Web development build tools)" })
+finally {
+    if ($substDrive) {
+        subst.exe $substDrive /d | Out-Null
+    }
 }
 
 Write-Host ''
