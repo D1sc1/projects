@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36930.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightsOutGame.Wpf", "LightsOutGame.Wpf\LightsOutGame.Wpf.csproj", "{564DA41D-090D-4534-801B-DEAA1902EDEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightsOutGame.Business", "LightsOutGame.Business\LightsOutGame.Business.csproj", "{D53354F6-235C-4DA9-B452-393D25517FEC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{564DA41D-090D-4534-801B-DEAA1902EDEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{564DA41D-090D-4534-801B-DEAA1902EDEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{564DA41D-090D-4534-801B-DEAA1902EDEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{564DA41D-090D-4534-801B-DEAA1902EDEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D53354F6-235C-4DA9-B452-393D25517FEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D53354F6-235C-4DA9-B452-393D25517FEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D53354F6-235C-4DA9-B452-393D25517FEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D53354F6-235C-4DA9-B452-393D25517FEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C10FAFC3-F570-4E48-B747-F55EC026FBE6}
+	EndGlobalSection
+EndGlobal
