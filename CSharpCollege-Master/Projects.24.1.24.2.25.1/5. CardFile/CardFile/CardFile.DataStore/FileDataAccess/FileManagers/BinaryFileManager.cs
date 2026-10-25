@@ -11,48 +11,43 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
 {
     internal class BinaryFileManager : IFileManager
     {
-        public void OpenFromFile(string fileName, CardCollection collection)
+        public void OpenFromFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = new BinaryReader(fs))
                 {
-                    var records = new List<CardDto>();
+                    var records = new List<StudentDto>();
 
                     try
                     {
                         while (reader.BaseStream.Position < reader.BaseStream.Length)
                         {
-                            var newCard = new CardDto();
+                            var newStudent = new StudentDto();
 
-                            newCard.Id = reader.ReadInt32();
-                            newCard.FirstName = reader.ReadString();
-                            newCard.MiddleName = reader.ReadString();
-                            newCard.LastName = reader.ReadString();
-
-                            var ticks = reader.ReadInt64();
-                            newCard.BirthDate = new DateTime(ticks);
-
-                            newCard.Department = reader.ReadString();
-                            newCard.Position = reader.ReadString();
-
-                            ticks = reader.ReadInt64();
-                            newCard.EmploymentDate = new DateTime(ticks);
+                            newStudent.Id = reader.ReadInt32();
+                            newStudent.LastName = reader.ReadString();
+                            newStudent.FirstName = reader.ReadString();
+                            newStudent.MiddleName = reader.ReadString();
+                            newStudent.BirthDate = new DateTime(reader.ReadInt64());
+                            newStudent.Faculty = reader.ReadString();
+                            newStudent.Course = reader.ReadInt32();
+                            newStudent.Group = reader.ReadString();
+                            newStudent.RecordBookNumber = reader.ReadString();
+                            newStudent.AverageGrade = reader.ReadDouble();
+                            newStudent.AdmissionDate = new DateTime(reader.ReadInt64());
 
                             var isDismissalDatePresent = reader.ReadBoolean();
                             if (isDismissalDatePresent)
                             {
-                                ticks = reader.ReadInt64();
-                                newCard.DismissalDate = new DateTime(ticks);
+                                newStudent.DismissalDate = new DateTime(reader.ReadInt64());
                             }
                             else
                             {
-                                newCard.DismissalDate = null;
+                                newStudent.DismissalDate = null;
                             }
 
-                            newCard.Salary = reader.ReadDecimal();
-
-                            records.Add(newCard);
+                            records.Add(newStudent);
                         }
                     }
                     catch
@@ -65,7 +60,7 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
             }
         }
 
-        public void SaveToFile(string fileName, CardCollection collection)
+        public void SaveToFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -74,24 +69,25 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                     foreach (var item in collection.GetAll())
                     {
                         writer.Write(item.Id);
-                        writer.Write(item.FirstName);
-                        writer.Write(item.MiddleName);
-                        writer.Write(item.LastName);
+                        writer.Write(item.LastName ?? string.Empty);
+                        writer.Write(item.FirstName ?? string.Empty);
+                        writer.Write(item.MiddleName ?? string.Empty);
                         writer.Write(item.BirthDate.Ticks);
-                        writer.Write(item.Department);
-                        writer.Write(item.Position);
-                        writer.Write(item.EmploymentDate.Ticks);
+                        writer.Write(item.Faculty ?? string.Empty);
+                        writer.Write(item.Course);
+                        writer.Write(item.Group ?? string.Empty);
+                        writer.Write(item.RecordBookNumber ?? string.Empty);
+                        writer.Write(item.AverageGrade);
+                        writer.Write(item.AdmissionDate.Ticks);
 
                         writer.Write(item.DismissalDate.HasValue);
                         if (item.DismissalDate.HasValue)
                         {
                             writer.Write(item.DismissalDate.Value.Ticks);
                         }
-
-                        writer.Write(item.Salary);
                     }
                 }
-            }    
+            }
         }
     }
 }

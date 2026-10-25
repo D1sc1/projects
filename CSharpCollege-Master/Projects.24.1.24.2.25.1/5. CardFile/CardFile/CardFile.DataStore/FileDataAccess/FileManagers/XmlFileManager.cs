@@ -14,34 +14,33 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
 {
     internal class XmlFileManager : IFileManager
     {
-        public void OpenFromFile(string fileName, CardCollection collection)
+        public void OpenFromFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = new StreamReader(fs))
                 {
-                    var serializer = new XmlSerializer(typeof(XmlCardCollection));
-                    var xmlCollection = (XmlCardCollection)serializer.Deserialize(reader);
+                    var serializer = new XmlSerializer(typeof(XmlStudentCollection));
+                    var xmlCollection = (XmlStudentCollection)serializer.Deserialize(reader);
 
-                    collection.ReplaceAll(Mapping.Mapper.Map<List<CardDto>>(xmlCollection.Cards), xmlCollection.NextId);
+                    collection.ReplaceAll(Mapping.Mapper.Map<List<StudentDto>>(xmlCollection.Students), xmlCollection.NextId);
                 }
             }
         }
 
-        public void SaveToFile(string fileName, CardCollection collection)
+        public void SaveToFile(string fileName, StudentCollection collection)
         {
-            var xmlCollection = new XmlCardCollection 
+            var xmlCollection = new XmlStudentCollection 
             { 
                 NextId = collection.NextId,
-                Cards = Mapping.Mapper.Map<List<XmlCard>>(collection.GetAll()),
+                Students = Mapping.Mapper.Map<List<XmlStudent>>(collection.GetAll()),
             };
-            //xmlCollection.Cards.AddRange(collection.GetAll().Select(c => Mapping.Mapper.Map<XmlCard>(c)));
 
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 using (var writer = new StreamWriter(fs))
                 {
-                    var serializer = new XmlSerializer(typeof(XmlCardCollection));
+                    var serializer = new XmlSerializer(typeof(XmlStudentCollection));
                     serializer.Serialize(writer, xmlCollection);
                 }
             }

@@ -113,12 +113,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataCollection\CardCollection.cs" />
-    <Compile Include="Dtos\CardDto.cs" />
-    <Compile Include="FileDataAccess\Entities\JsonCard.cs" />
-    <Compile Include="FileDataAccess\Entities\JsonCardCollection.cs" />
-    <Compile Include="FileDataAccess\Entities\XmlCard.cs" />
-    <Compile Include="FileDataAccess\Entities\XmlCardCollection.cs" />
+    <Compile Include="DataCollection\StudentCollection.cs" />
+    <Compile Include="Dtos\StudentDto.cs" />
+    <Compile Include="FileDataAccess\Entities\JsonStudent.cs" />
+    <Compile Include="FileDataAccess\Entities\JsonStudentCollection.cs" />
+    <Compile Include="FileDataAccess\Entities\XmlStudent.cs" />
+    <Compile Include="FileDataAccess\Entities\XmlStudentCollection.cs" />
     <Compile Include="FileDataAccess\FileDataService.cs" />
     <Compile Include="FileDataAccess\FileManagers\BinaryFileManager.cs" />
     <Compile Include="FileDataAccess\FileManagers\IFileManager.cs" />

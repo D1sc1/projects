@@ -11,13 +11,15 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
 {
     public class TextFileManager : IFileManager
     {
-        public void OpenFromFile(string fileName, CardCollection collection)
+        private const int FieldCount = 12;
+
+        public void OpenFromFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = new StreamReader(fs))
                 {
-                    var records = new List<CardDto>();
+                    var records = new List<StudentDto>();
 
                     while (!reader.EndOfStream)
                     {
@@ -28,70 +30,81 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                         }
 
                         var lineParts = line.Split(';');
-                        if (lineParts.Length != 10)
+                        if (lineParts.Length != FieldCount)
                         {
                             throw new Exception($"В строке файла {fileName} неверное количество полей");
                         }
 
-                        var newCard = new CardDto();
+                        var newStudent = new StudentDto();
 
                         if (int.TryParse(lineParts[0], out var id))
                         {
-                            newCard.Id = id;
+                            newStudent.Id = id;
                         }
                         else
                         {
                             throw new Exception($"В строке файла {fileName} неверное значение Id");
                         }
 
-                        newCard.FirstName = lineParts[1];
-                        newCard.MiddleName = lineParts[2];
-                        newCard.LastName = lineParts[3];
+                        newStudent.LastName = lineParts[1];
+                        newStudent.FirstName = lineParts[2];
+                        newStudent.MiddleName = lineParts[3];
 
                         if (DateTime.TryParse(lineParts[4], out var birthDate))
                         {
-                            newCard.BirthDate = birthDate;
+                            newStudent.BirthDate = birthDate;
                         }
                         else
                         {
                             throw new Exception($"В строке файла {fileName} неверное значение BirthDate");
                         }
 
-                        newCard.Department = lineParts[5];
-                        newCard.Position = lineParts[6];
+                        newStudent.Faculty = lineParts[5];
 
-                        if (DateTime.TryParse(lineParts[7], out var employmentDate))
+                        if (int.TryParse(lineParts[6], out var course))
                         {
-                            newCard.EmploymentDate = employmentDate;
+                            newStudent.Course = course;
                         }
                         else
                         {
-                            throw new Exception($"В строке файла {fileName} неверное значение EmploymentDate");
+                            throw new Exception($"В строке файла {fileName} неверное значение Course");
                         }
 
-                        if (lineParts[8] == "-")
+                        newStudent.Group = lineParts[7];
+                        newStudent.RecordBookNumber = lineParts[8];
+
+                        if (double.TryParse(lineParts[9], out var averageGrade))
                         {
-                            newCard.DismissalDate = null;
+                            newStudent.AverageGrade = averageGrade;
                         }
-                        else if (DateTime.TryParse(lineParts[8], out var dismissalDate))
+                        else
                         {
-                            newCard.DismissalDate = dismissalDate;
+                            throw new Exception($"В строке файла {fileName} неверное значение AverageGrade");
+                        }
+
+                        if (DateTime.TryParse(lineParts[10], out var admissionDate))
+                        {
+                            newStudent.AdmissionDate = admissionDate;
+                        }
+                        else
+                        {
+                            throw new Exception($"В строке файла {fileName} неверное значение AdmissionDate");
+                        }
+
+                        if (lineParts[11] == "-")
+                        {
+                            newStudent.DismissalDate = null;
+                        }
+                        else if (DateTime.TryParse(lineParts[11], out var dismissalDate))
+                        {
+                            newStudent.DismissalDate = dismissalDate;
                         }
                         else
                         {
                             throw new Exception($"В строке файла {fileName} неверное значение DismissalDate");
                         }
 
-                        if (decimal.TryParse(lineParts[9], out var salary))
-                        {
-                            newCard.Salary = salary;
-                        }
-                        else
-                        {
-                            throw new Exception($"В строке файла {fileName} неверное значение Salary");
-                        }
-
-                        records.Add(newCard);
+                        records.Add(newStudent);
                     }
 
                     collection.ReplaceAll(records);
@@ -99,7 +112,7 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
             }
         }
 
-        public void SaveToFile(string fileName, CardCollection collection)
+        public void SaveToFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -107,10 +120,10 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                 {
                     foreach (var item in collection.GetAll())
                     {
-                        writer.WriteLine($"{item.Id};{item.FirstName};{item.MiddleName};{item.LastName};" +
-                            $"{item.BirthDate.ToShortDateString()};{item.Department};{item.Position};" +
-                            $"{item.EmploymentDate.ToShortDateString()};{item.DismissalDate?.ToShortDateString() ?? "-"};" +
-                            $"{item.Salary}");
+                        writer.WriteLine($"{item.Id};{item.LastName};{item.FirstName};{item.MiddleName};" +
+                            $"{item.BirthDate.ToShortDateString()};{item.Faculty};{item.Course};{item.Group};" +
+                            $"{item.RecordBookNumber};{item.AverageGrade};{item.AdmissionDate.ToShortDateString()};" +
+                            $"{item.DismissalDate?.ToShortDateString() ?? "-"}");
                     }
                 }
             }

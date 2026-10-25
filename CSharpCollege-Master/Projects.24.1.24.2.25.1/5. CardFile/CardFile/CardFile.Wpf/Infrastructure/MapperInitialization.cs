@@ -19,9 +19,12 @@ namespace CardFile.Wpf.Infrastructure
 
         private static void Configure(IMapperConfigurationExpression cfg)
         {
-            cfg.CreateMap<Card, CardViewModel>();
-            cfg.CreateMap<CardViewModel, Card>();
-            cfg.CreateMap<CardViewModel, CardViewModel>();
+            // Courses - список для выбора в окне правки, данных в нём нет
+            cfg.CreateMap<Student, StudentViewModel>()
+                .ForMember(d => d.Courses, o => o.Ignore());
+            cfg.CreateMap<StudentViewModel, Student>();
+            cfg.CreateMap<StudentViewModel, StudentViewModel>()
+                .ForMember(d => d.Courses, o => o.Ignore());
         }
     }
 }

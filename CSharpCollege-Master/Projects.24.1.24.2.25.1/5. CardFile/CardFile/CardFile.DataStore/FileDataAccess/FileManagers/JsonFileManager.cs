@@ -15,7 +15,7 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
 {
     internal class JsonFileManager : IFileManager
     {
-        public void OpenFromFile(string fileName, CardCollection collection)
+        public void OpenFromFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
@@ -24,20 +24,20 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                     using (var jsonReader = new JsonTextReader(reader))
                     {
                         var serializer = new JsonSerializer();
-                        var jsonCollection = serializer.Deserialize<JsonCardCollection>(jsonReader);
+                        var jsonCollection = serializer.Deserialize<JsonStudentCollection>(jsonReader);
 
-                        collection.ReplaceAll(Mapping.Mapper.Map<List<CardDto>>(jsonCollection.Cards), jsonCollection.NextId);
+                        collection.ReplaceAll(Mapping.Mapper.Map<List<StudentDto>>(jsonCollection.Students), jsonCollection.NextId);
                     }
                 }
             }
         }
 
-        public void SaveToFile(string fileName, CardCollection collection)
+        public void SaveToFile(string fileName, StudentCollection collection)
         {
-            var jsonCollection = new JsonCardCollection
+            var jsonCollection = new JsonStudentCollection
             {
                 NextId = collection.NextId,
-                Cards = Mapping.Mapper.Map<List<JsonCard>>(collection.GetAll()),
+                Students = Mapping.Mapper.Map<List<JsonStudent>>(collection.GetAll()),
             };
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {

@@ -19,13 +19,13 @@ namespace CardFile.DataStore.Infrastructure
 
         private static void Configure(IMapperConfigurationExpression cfg)
         {
-            cfg.CreateMap<CardDto, CardDto>();
+            cfg.CreateMap<StudentDto, StudentDto>();
 
-            cfg.CreateMap<CardDto, XmlCard>();
-            cfg.CreateMap<XmlCard, CardDto>();
+            cfg.CreateMap<StudentDto, XmlStudent>();
+            cfg.CreateMap<XmlStudent, StudentDto>();
 
-            cfg.CreateMap<CardDto, JsonCard>();
-            cfg.CreateMap<JsonCard, CardDto>();
+            cfg.CreateMap<StudentDto, JsonStudent>();
+            cfg.CreateMap<JsonStudent, StudentDto>();
         }
     }
 }

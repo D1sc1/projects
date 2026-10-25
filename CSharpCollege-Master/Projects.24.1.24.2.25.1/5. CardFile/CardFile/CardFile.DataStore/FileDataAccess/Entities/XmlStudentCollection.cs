@@ -7,14 +7,14 @@ using System.Xml.Serialization;
 
 namespace CardFile.DataStore.FileDataAccess.Entities
 {
-    [XmlRoot("CardCollection")]
-    public class XmlCardCollection
+    [XmlRoot("StudentCollection")]
+    public class XmlStudentCollection
     {
         [XmlAttribute("NextId")]
         public int NextId { get; set; }
 
-        [XmlArray("Cards")]
-        [XmlArrayItem("Card")]
-        public List<XmlCard> Cards { get; set; } = new List<XmlCard>();
+        [XmlArray("Students")]
+        [XmlArrayItem("Student")]
+        public List<XmlStudent> Students { get; set; } = new List<XmlStudent>();
     }
 }

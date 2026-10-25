@@ -103,40 +103,40 @@ namespace CardFile.Wpf
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            var window = new CardEditWindow();
-            var card = ViewModel.GetNewCard();
-            window.ViewModel.LoadViewModel(card);
+            var window = new StudentEditWindow();
+            var student = ViewModel.GetNewStudent();
+            window.ViewModel.LoadViewModel(student);
 
             if (window.ShowDialog() != true)
             {
                 return;
             }
 
-            ViewModel.SaveNewCard(window.ViewModel);
+            ViewModel.SaveNewStudent(window.ViewModel);
         }
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            var card = ViewModel.GetSelectedCard();
-            if (card == null)
+            var student = ViewModel.GetSelectedStudent();
+            if (student == null)
             {
                 return;
             }
 
-            var window = new CardEditWindow();
-            window.ViewModel.LoadViewModel(card);
+            var window = new StudentEditWindow();
+            window.ViewModel.LoadViewModel(student);
 
             if (window.ShowDialog() != true)
             {
                 return;
             }
 
-            ViewModel.SaveEditedCard(window.ViewModel);
+            ViewModel.SaveEditedStudent(window.ViewModel);
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.DeleteSelectedCard();
+            ViewModel.DeleteSelectedStudent();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

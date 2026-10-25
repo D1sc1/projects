@@ -15,7 +15,7 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
 {
     internal class ZipFileManager : IFileManager
     {
-        public void OpenFromFile(string fileName, CardCollection collection)
+        public void OpenFromFile(string fileName, StudentCollection collection)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
@@ -28,10 +28,10 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                         {
                             using (var reader = new StreamReader(es))
                             {
-                                var serializer = new XmlSerializer(typeof(XmlCardCollection));
-                                var xmlCollection = (XmlCardCollection)serializer.Deserialize(reader);
+                                var serializer = new XmlSerializer(typeof(XmlStudentCollection));
+                                var xmlCollection = (XmlStudentCollection)serializer.Deserialize(reader);
 
-                                collection.ReplaceAll(Mapping.Mapper.Map<List<CardDto>>(xmlCollection.Cards), xmlCollection.NextId);
+                                collection.ReplaceAll(Mapping.Mapper.Map<List<StudentDto>>(xmlCollection.Students), xmlCollection.NextId);
                             }
                         }
                     }
@@ -43,12 +43,12 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
             }
         }
 
-        public void SaveToFile(string fileName, CardCollection collection)
+        public void SaveToFile(string fileName, StudentCollection collection)
         {
-            var xmlCollection = new XmlCardCollection
+            var xmlCollection = new XmlStudentCollection
             {
                 NextId = collection.NextId,
-                Cards = Mapping.Mapper.Map<List<XmlCard>>(collection.GetAll()),
+                Students = Mapping.Mapper.Map<List<XmlStudent>>(collection.GetAll()),
             };
 
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
@@ -60,7 +60,7 @@ namespace CardFile.DataStore.FileDataAccess.FileManagers
                     {
                         using (var writer = new StreamWriter(es))
                         {
-                            var serializer = new XmlSerializer(typeof(XmlCardCollection));
+                            var serializer = new XmlSerializer(typeof(XmlStudentCollection));
                             serializer.Serialize(writer, xmlCollection);
                         }
                     }

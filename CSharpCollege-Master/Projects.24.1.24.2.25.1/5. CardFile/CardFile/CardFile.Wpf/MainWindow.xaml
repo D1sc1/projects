@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CardFile.Wpf" xmlns:viewmodels="clr-namespace:CardFile.Wpf.ViewModels"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="450" Width="800" Loaded="Window_Loaded" Initialized="Window_Initialized">
+        Title="{Binding WindowTitle}" Height="450" Width="1000" Loaded="Window_Loaded" Initialized="Window_Initialized">
     <Window.DataContext>
         <viewmodels:MainWindowViewModel />
     </Window.DataContext>
@@ -27,17 +27,19 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <DataGrid Grid.Row="0" ItemsSource="{Binding Cards}" SelectedItem="{Binding SelectedCard}" SelectionChanged="DataGrid_SelectionChanged"
+            <DataGrid Grid.Row="0" ItemsSource="{Binding Students}" SelectedItem="{Binding SelectedStudent}" SelectionChanged="DataGrid_SelectionChanged"
                       AutoGenerateColumns="False" IsReadOnly="True"
                       CanUserAddRows="False" SelectionMode="Single" Margin="5">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ФИО" Binding="{Binding Fio}" />
                     <DataGridTextColumn Header="Дата рождения" Binding="{Binding BirthDateText}" />
-                    <DataGridTextColumn Header="Подразделение" Binding="{Binding Department}" />
-                    <DataGridTextColumn Header="Должность" Binding="{Binding Position}" />
-                    <DataGridTextColumn Header="Дата трудоустройства" Binding="{Binding EmploymentDateText}" />
-                    <DataGridTextColumn Header="Дата увольнения" Binding="{Binding DismissalDateText}" />
-                    <DataGridTextColumn Header="Оклад" Binding="{Binding SalaryText}" />
+                    <DataGridTextColumn Header="Факультет" Binding="{Binding Faculty}" />
+                    <DataGridTextColumn Header="Курс" Binding="{Binding Course}" />
+                    <DataGridTextColumn Header="Группа" Binding="{Binding Group}" />
+                    <DataGridTextColumn Header="№ зачётной книжки" Binding="{Binding RecordBookNumber}" />
+                    <DataGridTextColumn Header="Ср. балл" Binding="{Binding AverageGradeText}" />
+                    <DataGridTextColumn Header="Дата поступления" Binding="{Binding AdmissionDateText}" />
+                    <DataGridTextColumn Header="Дата отчисления" Binding="{Binding DismissalDateText}" />
                 </DataGrid.Columns>
             </DataGrid>
             

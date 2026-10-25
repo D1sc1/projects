@@ -16,13 +16,13 @@ using System.Windows.Shapes;
 namespace CardFile.Wpf.Views
 {
     /// <summary>
-    /// Interaction logic for CardEditWindow.xaml
+    /// Interaction logic for StudentEditWindow.xaml
     /// </summary>
-    public partial class CardEditWindow : Window
+    public partial class StudentEditWindow : Window
     {
-        public CardViewModel ViewModel => (CardViewModel)DataContext;
+        public StudentViewModel ViewModel => (StudentViewModel)DataContext;
 
-        public CardEditWindow()
+        public StudentEditWindow()
         {
             InitializeComponent();
         }
@@ -37,14 +37,14 @@ namespace CardFile.Wpf.Views
             DialogResult = false;
         }
 
-        private void IsWorkingTillNowCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void IsStudyingNowCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            ViewModel.IsWorkingTillNowChecked();
+            ViewModel.IsStudyingNowChecked();
         }
 
-        private void IsWorkingTillNowCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void IsStudyingNowCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            ViewModel.IsWorkingTillNowUnchecked();
+            ViewModel.IsStudyingNowUnchecked();
         }
     }
 }
